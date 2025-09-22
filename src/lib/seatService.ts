@@ -10,9 +10,9 @@ export interface DBSeat {
 
 export interface DBReservation {
   id: string;
-  seat_id: string;
-  person_name: string;
-  person_phone?: string;
+  seats: string[];
+  customer_name: string;
+  customer_email: string;
   created_at: string;
 }
 
@@ -50,47 +50,65 @@ export const seatService = {
     if (error) throw error;
   },
 
-  async reserveSeats(reservations: { seat_id: string; person_name: string; person_phone?: string }[]) {
+  async createReservation(seats: string[], customerName: string, customerEmail: string) {
     // Start a transaction
     const { error: seatsError } = await supabase
       .from('seats')
       .update({ is_occupied: true })
-      .in('id', reservations.map(r => r.seat_id));
+      .in('id', seats);
 
     if (seatsError) throw seatsError;
 
     const { error: reservationsError } = await supabase
       .from('reservations')
-      .insert(reservations);
+      .insert({
+        seats,
+        customer_name: customerName,
+        customer_email: customerEmail
+      });
 
-    if (reservationsError) throw reservationsError;
+    if (reservationsError) {
+      // Rollback seats update if reservation fails
+      await supabase
+        .from('seats')
+        .update({ is_occupied: false })
+        .in('id', seats);
+      throw reservationsError;
+    }
   },
 
-  async deleteReservation(seatId: string) {
-    // Start a transaction
+  async deleteReservation(reservationId: string) {
+    // First get the seats from the reservation
+    const { data: reservation, error: getError } = await supabase
+      .from('reservations')
+      .select('seats')
+      .eq('id', reservationId)
+      .single();
+
+    if (getError) throw getError;
+
+    // Update seats to be unoccupied
     const { error: seatsError } = await supabase
       .from('seats')
       .update({ is_occupied: false })
-      .eq('id', seatId);
+      .in('id', reservation.seats);
 
     if (seatsError) throw seatsError;
 
-    const { error: reservationsError } = await supabase
+    // Delete the reservation
+    const { error: deleteError } = await supabase
       .from('reservations')
       .delete()
-      .eq('seat_id', seatId);
+      .eq('id', reservationId);
 
-    if (reservationsError) throw reservationsError;
+    if (deleteError) throw deleteError;
   },
 
   async getAllReservations() {
     const { data, error } = await supabase
       .from('reservations')
-      .select(`
-        *,
-        seat:seats(*)
-      `)
-      .order('created_at');
+      .select('*')
+      .order('created_at', { ascending: false });
     
     if (error) throw error;
     return data;

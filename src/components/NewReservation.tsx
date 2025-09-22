@@ -8,6 +8,7 @@ import SeatGrid from "./SeatGrid";
 import SeatSelectionPanel from "./SeatSelectionPanel";
 import PersonModal from "./PersonModal";
 import { Seat, Person } from "@/types/reservation";
+import { seatService } from "@/lib/seatService";
 
 interface NewReservationProps {
   seats: Seat[];
@@ -67,8 +68,23 @@ const NewReservation = ({ seats, onBack, onReservationComplete }: NewReservation
     setIsModalOpen(true);
   };
 
-  const handleReserve = () => {
-    onReservationComplete(selectedSeats);
+  const handleReserve = async () => {
+    try {
+      // Asumimos que todos los asientos tienen la misma información de persona
+      const person = selectedSeats[0].person;
+      if (!person) return;
+
+      await seatService.createReservation(
+        selectedSeats.map(seat => seat.id),
+        person.name,
+        person.email
+      );
+
+      onReservationComplete(selectedSeats);
+    } catch (error) {
+      console.error('Error al crear la reservación:', error);
+      // Aquí podrías mostrar un toast o alerta de error
+    }
   };
 
   const handleCancel = () => {

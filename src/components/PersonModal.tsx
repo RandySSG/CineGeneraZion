@@ -15,13 +15,13 @@ interface PersonModalProps {
 
 const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) => {
   const [name, setName] = useState(seat?.person?.name || "");
-  const [phone, setPhone] = useState(seat?.person?.phone || "");
+  const [email, setEmail] = useState(seat?.person?.email || "");
 
   const handleSave = () => {
-    if (name.trim()) {
+    if (name.trim() && email.trim()) {
       onSave({
         name: name.trim(),
-        phone: phone.trim() || undefined
+        email: email.trim()
       });
       handleClose();
     }
@@ -29,7 +29,7 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
 
   const handleClose = () => {
     setName("");
-    setPhone("");
+    setEmail("");
     onClose();
   };
 
@@ -61,15 +61,16 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="phone" className="text-foreground">
-              Número de teléfono (Opcional)
+            <Label htmlFor="email" className="text-foreground">
+              Correo electrónico *
             </Label>
             <Input
-              id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder=""
-              autoComplete="off"
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ejemplo@correo.com"
+              autoComplete="email"
               className="bg-input border-border text-foreground"
             />
           </div>
@@ -81,7 +82,7 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
           </Button>
           <Button 
             onClick={handleSave}
-            disabled={!name.trim()}
+            disabled={!name.trim() || !email.trim() || !email.includes('@')}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             {mode === "add" ? "Reservar" : "Actualizar"}

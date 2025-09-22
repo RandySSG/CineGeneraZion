@@ -1,18 +1,30 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Seat } from "@/types/reservation";
-import { ArrowLeft, User, Phone, Printer, Download } from "lucide-react";
+import { DBReservation } from "@/lib/seatService";
+import { ArrowLeft, User, Mail, Printer, Download } from "lucide-react";
+import { seatService } from "@/lib/seatService";
 
 interface ReservationListProps {
-  seats: Seat[];
   onBack: () => void;
 }
 
-const ReservationList = ({ seats, onBack }: ReservationListProps) => {
-  const reservedSeats = seats
-    .filter(seat => seat.isOccupied && seat.person)
-    .sort((a, b) => a.person!.name.localeCompare(b.person!.name));
+const ReservationList = ({ onBack }: ReservationListProps) => {
+  const [reservations, setReservations] = useState<DBReservation[]>([]);
+
+  useEffect(() => {
+    loadReservations();
+  }, []);
+
+  const loadReservations = async () => {
+    try {
+      const data = await seatService.getAllReservations();
+      setReservations(data);
+    } catch (error) {
+      console.error('Error al cargar las reservaciones:', error);
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -20,11 +32,13 @@ const ReservationList = ({ seats, onBack }: ReservationListProps) => {
 
   const handleDownload = () => {
     const csvContent = [
-      ['Seat', 'Person Name', 'Phone'],
-      ...reservedSeats.map(seat => [
-        seat.id,
-        seat.person?.name || '',
-        seat.person?.phone || ''
+      ['ID', 'Cliente', 'Email', 'Asientos', 'Fecha'],
+      ...reservations.map(reservation => [
+        reservation.id,
+        reservation.customer_name,
+        reservation.customer_email,
+        reservation.seats.join(', '),
+        new Date(reservation.created_at).toLocaleDateString()
       ])
     ].map(row => row.join(',')).join('\n');
 
@@ -74,47 +88,48 @@ const ReservationList = ({ seats, onBack }: ReservationListProps) => {
 
         <Card className="p-6 bg-card border-border">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-foreground mb-2">Asientos Reservados</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Reservaciones</h1>
             <p className="text-muted-foreground">
-              Total: <span className="font-semibold text-foreground">{reservedSeats.length}</span>
+              Total: <span className="font-semibold text-foreground">{reservations.length}</span>
             </p>
           </div>
 
           <Separator className="mb-6" />
 
-          {reservedSeats.length === 0 ? (
+          {reservations.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-lg text-muted-foreground">No se encontraron reservaciones</p>
               <p className="text-sm text-muted-foreground mt-2">Todos los asientos están disponibles</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {reservedSeats.map((seat) => (
+              {reservations.map((reservation) => (
                 <div
-                  key={seat.id}
+                  key={reservation.id}
                   className="flex items-center justify-between p-4 bg-secondary rounded-lg border border-border hover:bg-secondary/80 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-seat-occupied rounded-lg flex items-center justify-center font-bold text-primary-foreground">
-                      {seat.id}
+                      {reservation.seats.length}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <User className="h-4 w-4 text-foreground" />
-                        <span className="font-semibold text-foreground text-lg">{seat.person?.name}</span>
+                        <span className="font-semibold text-foreground text-lg">{reservation.customer_name}</span>
                       </div>
-                      {seat.person?.phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">{seat.person.phone}</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">{reservation.customer_email}</span>
+                      </div>
                     </div>
                   </div>
                   
                   <div className="text-right">
                     <div className="text-sm text-muted-foreground">
-                      Fila {seat.row} • Asiento {seat.number}
+                      Asientos: {reservation.seats.join(', ')}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {new Date(reservation.created_at).toLocaleString()}
                     </div>
                   </div>
                 </div>

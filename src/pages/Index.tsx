@@ -104,8 +104,8 @@ const Index = () => {
     case "reservation-list":
       return (
         <ReservationList
-          seats={seats}
           onBack={handleBackToMenu}
+          onReservationChange={refetchSeats}
         />
       );
     

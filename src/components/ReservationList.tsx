@@ -8,6 +8,7 @@ import { seatService } from "@/lib/seatService";
 
 interface ReservationListProps {
   onBack: () => void;
+  onReservationChange?: () => void;  // Para refrescar los asientos
 }
 
 interface GroupedReservation {
@@ -34,7 +35,7 @@ const formatDate = (date: Date) => {
   return `${year}-${month}-${day}, ${diaSemana} a las ${hora}`;
 };
 
-const ReservationList = ({ onBack }: ReservationListProps) => {
+const ReservationList = ({ onBack, onReservationChange }: ReservationListProps) => {
   const [groupedReservations, setGroupedReservations] = useState<GroupedReservation[]>([]);
 
   useEffect(() => {
@@ -99,6 +100,9 @@ const ReservationList = ({ onBack }: ReservationListProps) => {
     try {
       await seatService.deleteReservation(ids, true);  // true indica que son IDs de reservación
       loadReservations(); // Recargar la lista
+      if (onReservationChange) {
+        onReservationChange(); // Refrescar los asientos en toda la aplicación
+      }
     } catch (error) {
       console.error('Error al eliminar la reservación:', error);
     }

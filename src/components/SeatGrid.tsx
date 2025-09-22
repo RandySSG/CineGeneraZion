@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Seat } from "@/types/reservation";
 import { cn } from "@/lib/utils";
+import SeatButton from "./SeatButton";
 
 interface SeatGridProps {
   seats: Seat[];
@@ -13,7 +14,6 @@ const SeatGrid = ({ seats, onSeatClick, mode, selectedSeats = [] }: SeatGridProp
   const [hoveredSeat, setHoveredSeat] = useState<string | null>(null);
   
   const rows = ['A', 'B', 'C', 'D', 'E'];
-  const seatsPerRow = 18;
   
   const getSeatColor = (seat: Seat) => {
     if (selectedSeats.some(s => s.id === seat.id)) {
@@ -29,10 +29,35 @@ const SeatGrid = ({ seats, onSeatClick, mode, selectedSeats = [] }: SeatGridProp
     if (mode === "select") {
       return !seat.isOccupied || selectedSeats.some(s => s.id === seat.id);
     }
-    if (mode === "delete") {
-      return seat.isOccupied;
-    }
-    return false;
+    return mode === "delete" && seat.isOccupied;
+  };
+
+  const renderSeatSection = (startNumber: number, endNumber: number, row: string) => {
+    return Array.from({ length: endNumber - startNumber + 1 }, (_, index) => {
+      const seatNumber = startNumber + index;
+      const formattedSeatNumber = seatNumber.toString().padStart(2, '0');
+      const seatId = `${row}${formattedSeatNumber}`;
+      const seat = seats.find(s => s.id === seatId) || {
+        id: seatId,
+        row,
+        number: seatNumber,
+        isOccupied: false
+      };
+      
+      return (
+        <SeatButton
+          key={seatId}
+          seat={seat}
+          seatId={seatId}
+          seatNumber={seatNumber}
+          isHovered={hoveredSeat === seatId}
+          canClick={canClickSeat(seat)}
+          onClick={() => canClickSeat(seat) && onSeatClick(seat)}
+          onHover={(isHovered) => setHoveredSeat(isHovered ? seatId : null)}
+          getColor={getSeatColor}
+        />
+      );
+    });
   };
 
   return (
@@ -52,77 +77,10 @@ const SeatGrid = ({ seats, onSeatClick, mode, selectedSeats = [] }: SeatGridProp
             
             {/* Seats */}
             <div className="flex gap-2">
-              {/* First aisle */}
               <div className="w-4"></div>
-              
-              {/* First section (9 seats) */}
-              {Array.from({ length: 9 }, (_, index) => {
-                const seatNumber = index + 1;
-                // Asegurarnos de que el número de asiento tenga dos dígitos
-                const formattedSeatNumber = seatNumber.toString().padStart(2, '0');
-                const seatId = `${row}${formattedSeatNumber}`;
-                const seat = seats.find(s => s.id === seatId) || {
-                  id: seatId,
-                  row,
-                  number: seatNumber,
-                  isOccupied: false
-                };
-              
-                return (
-                  <button
-                    key={seatId}
-                    className={cn(
-                      "w-8 h-8 rounded-lg border-2 transition-all duration-200 text-xs font-bold flex items-center justify-center",
-                      getSeatColor(seat),
-                      !canClickSeat(seat) && "cursor-not-allowed opacity-50",
-                      hoveredSeat === seatId && canClickSeat(seat) && "transform scale-110 shadow-lg"
-                    )}
-                    onClick={() => canClickSeat(seat) && onSeatClick(seat)}
-                    onMouseEnter={() => setHoveredSeat(seatId)}
-                    onMouseLeave={() => setHoveredSeat(null)}
-                    disabled={!canClickSeat(seat)}
-                    title={`Seat ${seatId}${seat.isOccupied ? ` - ${seat.person?.name || 'Occupied'}` : ''}`}
-                  >
-                    {seatNumber}
-                  </button>
-                );
-              })}
-
-              {/* Middle aisle */}
+              {renderSeatSection(1, 9, row)}
               <div className="w-8"></div>
-
-              {/* Second section (9 seats) */}
-              {Array.from({ length: 9 }, (_, index) => {
-                const seatNumber = index + 10;
-                // Asegurarnos de que el número de asiento tenga dos dígitos
-                const formattedSeatNumber = seatNumber.toString().padStart(2, '0');
-                const seatId = `${row}${formattedSeatNumber}`;
-                const seat = seats.find(s => s.id === seatId) || {
-                  id: seatId,
-                  row,
-                  number: seatNumber,
-                  isOccupied: false
-                };
-                
-                return (
-                  <button
-                    key={seatId}
-                    className={cn(
-                      "w-8 h-8 rounded-lg border-2 transition-all duration-200 text-xs font-bold flex items-center justify-center",
-                      getSeatColor(seat),
-                      !canClickSeat(seat) && "cursor-not-allowed opacity-50",
-                      hoveredSeat === seatId && canClickSeat(seat) && "transform scale-110 shadow-lg"
-                    )}
-                    onClick={() => canClickSeat(seat) && onSeatClick(seat)}
-                    onMouseEnter={() => setHoveredSeat(seatId)}
-                    onMouseLeave={() => setHoveredSeat(null)}
-                    disabled={!canClickSeat(seat)}
-                    title={`Seat ${seatId}${seat.isOccupied ? ` - ${seat.person?.name || 'Occupied'}` : ''}`}
-                  >
-                    {seatNumber}
-                  </button>
-                );
-              })}
+              {renderSeatSection(10, 18, row)}
             </div>
           </div>
         ))}

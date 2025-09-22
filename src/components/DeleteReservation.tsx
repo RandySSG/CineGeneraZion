@@ -69,6 +69,9 @@ const DeleteReservation = ({ seats, onBack, onDeleteReservation }: DeleteReserva
               <DialogTitle className="text-foreground">
                 Eliminar Reservación - Asiento {selectedSeat?.id}
               </DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Aquí puede revisar y confirmar la eliminación de la reservación.
+              </p>
             </DialogHeader>
             
             {selectedSeat?.person && (

@@ -70,7 +70,7 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder=""
-              autoComplete="tel"
+              autoComplete="off"
               className="bg-input border-border text-foreground"
             />
           </div>

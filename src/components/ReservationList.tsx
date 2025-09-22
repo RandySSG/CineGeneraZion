@@ -10,8 +10,32 @@ interface ReservationListProps {
   onBack: () => void;
 }
 
+interface GroupedReservation {
+  customerName: string;
+  customerPhone?: string;
+  seats: string[];
+  createdAt: string;
+  ids: string[];
+}
+
+const formatDate = (date: Date) => {
+  const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const diaSemana = diasSemana[date.getDay()];
+  const hora = date.toLocaleTimeString('es-US', { 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    hour12: true 
+  });
+
+  return `${year}-${month}-${day}, ${diaSemana} a las ${hora}`;
+};
+
 const ReservationList = ({ onBack }: ReservationListProps) => {
-  const [reservations, setReservations] = useState<DBReservation[]>([]);
+  const [groupedReservations, setGroupedReservations] = useState<GroupedReservation[]>([]);
 
   useEffect(() => {
     loadReservations();
@@ -20,7 +44,26 @@ const ReservationList = ({ onBack }: ReservationListProps) => {
   const loadReservations = async () => {
     try {
       const data = await seatService.getAllReservations();
-      setReservations(data);
+      
+      // Agrupar reservaciones por nombre y teléfono
+      const groupedData = data.reduce((acc, curr) => {
+        const key = `${curr.customer_name}-${curr.customer_phone || ''}`;
+        if (!acc[key]) {
+          acc[key] = {
+            customerName: curr.customer_name,
+            customerPhone: curr.customer_phone,
+            seats: [curr.seat_id],
+            createdAt: curr.created_at,
+            ids: [curr.id]
+          };
+        } else {
+          acc[key].seats.push(curr.seat_id);
+          acc[key].ids.push(curr.id);
+        }
+        return acc;
+      }, {} as Record<string, GroupedReservation>);
+
+      setGroupedReservations(Object.values(groupedData));
     } catch (error) {
       console.error('Error al cargar las reservaciones:', error);
     }
@@ -32,13 +75,12 @@ const ReservationList = ({ onBack }: ReservationListProps) => {
 
   const handleDownload = () => {
     const csvContent = [
-      ['ID', 'Cliente', 'Teléfono', 'Asientos', 'Fecha'],
-      ...reservations.map(reservation => [
-        reservation.id,
-        reservation.customer_name,
-        reservation.customer_phone || '',
+      ['Cliente', 'Teléfono', 'Asientos', 'Fecha'],
+      ...groupedReservations.map(reservation => [
+        reservation.customerName,
+        reservation.customerPhone || '',
         reservation.seats.join(', '),
-        new Date(reservation.created_at).toLocaleDateString()
+        new Date(reservation.createdAt).toLocaleDateString()
       ])
     ].map(row => row.join(',')).join('\n');
 
@@ -51,6 +93,15 @@ const ReservationList = ({ onBack }: ReservationListProps) => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteReservation = async (ids: string[]) => {
+    try {
+      await seatService.deleteReservation(ids);
+      loadReservations(); // Recargar la lista
+    } catch (error) {
+      console.error('Error al eliminar la reservación:', error);
+    }
   };
 
   return (
@@ -90,49 +141,58 @@ const ReservationList = ({ onBack }: ReservationListProps) => {
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold text-foreground mb-2">Reservaciones</h1>
             <p className="text-muted-foreground">
-              Total: <span className="font-semibold text-foreground">{reservations.length}</span>
+              Total: <span className="font-semibold text-foreground">{groupedReservations.length}</span>
             </p>
           </div>
 
           <Separator className="mb-6" />
 
-          {reservations.length === 0 ? (
+          {groupedReservations.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-lg text-muted-foreground">No se encontraron reservaciones</p>
               <p className="text-sm text-muted-foreground mt-2">Todos los asientos están disponibles</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {reservations.map((reservation) => (
+              {groupedReservations.map((reservation) => (
                 <div
-                  key={reservation.id}
+                  key={`${reservation.customerName}-${reservation.seats.join(',')}`}
                   className="flex items-center justify-between p-4 bg-secondary rounded-lg border border-border hover:bg-secondary/80 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-seat-occupied rounded-lg flex items-center justify-center font-bold text-primary-foreground">
-                      {reservation.seats.length}
+                      {reservation.seats[0]}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <User className="h-4 w-4 text-foreground" />
-                        <span className="font-semibold text-foreground text-lg">{reservation.customer_name}</span>
+                        <span className="font-semibold text-foreground text-lg">{reservation.customerName}</span>
                       </div>
-                      {reservation.customer_phone && (
+                      {reservation.customerPhone && (
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">{reservation.customer_phone}</span>
+                          <span className="text-muted-foreground">{reservation.customerPhone}</span>
                         </div>
                       )}
                     </div>
                   </div>
                   
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">
-                      Asientos: {reservation.seats.join(', ')}
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className="text-sm text-muted-foreground">
+                        Asientos: {reservation.seats.join(', ')}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {formatDate(new Date(reservation.createdAt))}
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {new Date(reservation.created_at).toLocaleString()}
-                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteReservation(reservation.ids)}
+                    >
+                      Eliminar
+                    </Button>
                   </div>
                 </div>
               ))}

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Users, Plus, Minus } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import SeatGrid from "./SeatGrid";
 import SeatSelectionPanel from "./SeatSelectionPanel";
 import PersonModal from "./PersonModal";
@@ -17,6 +18,7 @@ interface NewReservationProps {
 }
 
 const NewReservation = ({ seats, onBack, onReservationComplete }: NewReservationProps) => {
+  const { toast } = useToast();
   const [step, setStep] = useState<"select-count" | "select-seats">("select-count");
   const [seatCount, setSeatCount] = useState(1);
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
@@ -70,20 +72,31 @@ const NewReservation = ({ seats, onBack, onReservationComplete }: NewReservation
 
   const handleReserve = async () => {
     try {
-      // Asumimos que todos los asientos tienen la misma información de persona
-      const person = selectedSeats[0].person;
-      if (!person) return;
+      // Verificar que todos los asientos tengan información de persona
+      const invalidSeats = selectedSeats.filter(seat => !seat.person);
+      if (invalidSeats.length > 0) return;
 
       await seatService.createReservation(
-        selectedSeats.map(seat => seat.id),
-        person.name,
-        person.email
+        selectedSeats.map(seat => ({
+          seatId: seat.id,
+          name: seat.person!.name,
+          phone: seat.person!.phone
+        }))
       );
+
+      toast({
+        title: "Reservación exitosa",
+        description: "Los asientos han sido reservados correctamente.",
+      });
 
       onReservationComplete(selectedSeats);
     } catch (error) {
       console.error('Error al crear la reservación:', error);
-      // Aquí podrías mostrar un toast o alerta de error
+      toast({
+        variant: "destructive",
+        title: "Error al crear la reservación",
+        description: "Por favor intenta nuevamente."
+      });
     }
   };
 

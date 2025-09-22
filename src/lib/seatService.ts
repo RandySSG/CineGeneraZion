@@ -10,7 +10,7 @@ export interface DBSeat {
 
 export interface DBReservation {
   id: string;
-  seats: string[];
+  seat_id: string;
   customer_name: string;
   customer_phone?: string;
   created_at: string;
@@ -18,14 +18,38 @@ export interface DBReservation {
 
 export const seatService = {
   async getAllSeats() {
-    const { data, error } = await supabase
-      .from('seats')
-      .select('*')
-      .order('row')
-      .order('number');
+    const { data: reservations, error: reservationsError } = await supabase
+      .from('reservations')
+      .select('seat_id, customer_name, customer_phone')
+      .order('created_at', { ascending: false });
     
-    if (error) throw error;
-    return data;
+    if (reservationsError) throw reservationsError;
+
+    const occupiedSeatsWithPeople = new Map(reservations?.map(r => [
+      r.seat_id,
+      { name: r.customer_name, phone: r.customer_phone }
+    ]) || []);
+    
+    const rows = ['A', 'B', 'C', 'D', 'E'];
+    const seatsPerRow = 18;
+    const seats: (DBSeat & { person?: { name: string; phone?: string } })[] = [];
+
+    for (const row of rows) {
+      for (let number = 1; number <= seatsPerRow; number++) {
+        const seatId = `${row}${number.toString().padStart(2, '0')}`;
+        const person = occupiedSeatsWithPeople.get(seatId);
+        seats.push({
+          id: seatId,
+          row,
+          number,
+          is_occupied: occupiedSeatsWithPeople.has(seatId),
+          created_at: new Date().toISOString(),
+          ...(person ? { person } : {})
+        });
+      }
+    }
+    
+    return seats;
   },
 
   async createInitialSeats() {
@@ -50,56 +74,36 @@ export const seatService = {
     if (error) throw error;
   },
 
-  async createReservation(seats: string[], customerName: string, customerPhone?: string) {
-    // Start a transaction
-    const { error: seatsError } = await supabase
-      .from('seats')
-      .update({ is_occupied: true })
-      .in('id', seats);
+  async createReservation(reservations: { seatId: string, name: string, phone?: string }[]) {
+    console.log('Creando reservaciones:', reservations);
+    
+    // Create a reservation for each seat
+    const dbReservations = reservations.map(r => ({
+      seat_id: r.seatId,
+      customer_name: r.name,
+      customer_phone: r.phone
+    }));
 
-    if (seatsError) throw seatsError;
+    console.log('Reservaciones a crear:', dbReservations);
 
-    const { error: reservationsError } = await supabase
+    const { data, error: reservationsError } = await supabase
       .from('reservations')
-      .insert({
-        seats,
-        customer_name: customerName,
-        customer_phone: customerPhone
-      });
+      .insert(dbReservations)
+      .select();
 
     if (reservationsError) {
-      // Rollback seats update if reservation fails
-      await supabase
-        .from('seats')
-        .update({ is_occupied: false })
-        .in('id', seats);
+      console.error('Error al crear reservaciones:', reservationsError);
       throw reservationsError;
     }
+
+    console.log('Reservaciones creadas:', data);
   },
 
-  async deleteReservation(reservationId: string) {
-    // First get the seats from the reservation
-    const { data: reservation, error: getError } = await supabase
-      .from('reservations')
-      .select('seats')
-      .eq('id', reservationId)
-      .single();
-
-    if (getError) throw getError;
-
-    // Update seats to be unoccupied
-    const { error: seatsError } = await supabase
-      .from('seats')
-      .update({ is_occupied: false })
-      .in('id', reservation.seats);
-
-    if (seatsError) throw seatsError;
-
-    // Delete the reservation
+  async deleteReservation(seatIds: string[]) {
     const { error: deleteError } = await supabase
       .from('reservations')
       .delete()
-      .eq('id', reservationId);
+      .in('seat_id', seatIds);
 
     if (deleteError) throw deleteError;
   },

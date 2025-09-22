@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import MainMenu from "@/components/MainMenu";
 import NewReservation from "@/components/NewReservation";
 import DeleteReservation from "@/components/DeleteReservation";
@@ -6,39 +7,28 @@ import ReservationList from "@/components/ReservationList";
 import Receipt from "@/components/Receipt";
 import { Seat } from "@/types/reservation";
 import { useToast } from "@/hooks/use-toast";
+import { seatService } from "@/lib/seatService";
 
 type AppState = "menu" | "new-reservation" | "delete-reservation" | "reservation-list" | "receipt";
 
 const Index = () => {
   const [currentState, setCurrentState] = useState<AppState>("menu");
-  const [seats, setSeats] = useState<Seat[]>([]);
   const [completedReservation, setCompletedReservation] = useState<Seat[]>([]);
   const { toast } = useToast();
 
-  // Initialize seats on component mount
-  useEffect(() => {
-    const initializeSeats = () => {
-      const rows = ['A', 'B', 'C', 'D', 'E'];
-      const seatsPerRow = 18;
-      const initialSeats: Seat[] = [];
-
-      rows.forEach(row => {
-        for (let i = 1; i <= seatsPerRow; i++) {
-          const seatNumber = i.toString().padStart(2, '0');
-          initialSeats.push({
-            id: `${row}${seatNumber}`,
-            row,
-            number: i,
-            isOccupied: false
-          });
-        }
-      });
-
-      setSeats(initialSeats);
-    };
-
-    initializeSeats();
-  }, []);
+  const { data: seats = [], refetch: refetchSeats } = useQuery({
+    queryKey: ['seats'],
+    queryFn: async () => {
+      const dbSeats = await seatService.getAllSeats();
+      return dbSeats.map(dbSeat => ({
+        id: dbSeat.id,
+        row: dbSeat.row,
+        number: dbSeat.number,
+        isOccupied: dbSeat.is_occupied,
+        person: dbSeat.person
+      }));
+    }
+  });
 
   const handleNewReservation = () => {
     setCurrentState("new-reservation");
@@ -52,17 +42,9 @@ const Index = () => {
     setCurrentState("reservation-list");
   };
 
-  const handleReservationComplete = (selectedSeats: Seat[]) => {
-    // Update the main seats array with the reserved seats
-    setSeats(prevSeats => 
-      prevSeats.map(seat => {
-        const selectedSeat = selectedSeats.find(s => s.id === seat.id);
-        if (selectedSeat) {
-          return { ...selectedSeat, isOccupied: true };
-        }
-        return seat;
-      })
-    );
+  const handleReservationComplete = async (selectedSeats: Seat[]) => {
+    // La reserva ya se creó en la base de datos, solo necesitamos actualizar la UI
+    await refetchSeats(); // Actualizamos los asientos desde la base de datos
 
     setCompletedReservation(selectedSeats);
     setCurrentState("receipt");
@@ -73,19 +55,22 @@ const Index = () => {
     });
   };
 
-  const handleDeleteSeatReservation = (seatId: string) => {
-    setSeats(prevSeats => 
-      prevSeats.map(seat => 
-        seat.id === seatId 
-          ? { ...seat, isOccupied: false, person: undefined }
-          : seat
-      )
-    );
+  const handleDeleteSeatReservation = async (seatId: string) => {
+    try {
+      await seatService.deleteReservation([seatId]);
+      await refetchSeats(); // Actualizamos los asientos desde la base de datos
 
-    toast({
-      title: "Reservation Eliminada",
-      description: `El asiento ${seatId} ahora está disponible.`,
-    });
+      toast({
+        title: "Reservación Eliminada",
+        description: `El asiento ${seatId} ahora está disponible.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la reservación.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleBackToMenu = () => {

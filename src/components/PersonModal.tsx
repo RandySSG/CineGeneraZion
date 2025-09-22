@@ -15,13 +15,13 @@ interface PersonModalProps {
 
 const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) => {
   const [name, setName] = useState(seat?.person?.name || "");
-  const [email, setEmail] = useState(seat?.person?.email || "");
+  const [phone, setPhone] = useState(seat?.person?.phone || "");
 
   const handleSave = () => {
-    if (name.trim() && email.trim()) {
+    if (name.trim()) {
       onSave({
         name: name.trim(),
-        email: email.trim()
+        phone: phone.trim() || undefined
       });
       handleClose();
     }
@@ -61,16 +61,16 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-foreground">
-              Correo electrónico *
+            <Label htmlFor="phone" className="text-foreground">
+              Teléfono (Opcional)
             </Label>
             <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ejemplo@correo.com"
-              autoComplete="email"
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(123) 456-7890"
+              autoComplete="tel"
               className="bg-input border-border text-foreground"
             />
           </div>
@@ -82,7 +82,7 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
           </Button>
           <Button 
             onClick={handleSave}
-            disabled={!name.trim() || !email.trim() || !email.includes('@')}
+            disabled={!name.trim()}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             {mode === "add" ? "Reservar" : "Actualizar"}

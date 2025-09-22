@@ -12,7 +12,7 @@ export interface DBReservation {
   id: string;
   seats: string[];
   customer_name: string;
-  customer_email: string;
+  customer_phone?: string;
   created_at: string;
 }
 
@@ -50,7 +50,7 @@ export const seatService = {
     if (error) throw error;
   },
 
-  async createReservation(seats: string[], customerName: string, customerEmail: string) {
+  async createReservation(seats: string[], customerName: string, customerPhone?: string) {
     // Start a transaction
     const { error: seatsError } = await supabase
       .from('seats')
@@ -64,7 +64,7 @@ export const seatService = {
       .insert({
         seats,
         customer_name: customerName,
-        customer_email: customerEmail
+        customer_phone: customerPhone
       });
 
     if (reservationsError) {

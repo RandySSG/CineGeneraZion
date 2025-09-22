@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { DBReservation } from "@/lib/seatService";
-import { ArrowLeft, User, Mail, Printer, Download } from "lucide-react";
+import { ArrowLeft, User, Phone, Printer, Download } from "lucide-react";
 import { seatService } from "@/lib/seatService";
 
 interface ReservationListProps {
@@ -32,11 +32,11 @@ const ReservationList = ({ onBack }: ReservationListProps) => {
 
   const handleDownload = () => {
     const csvContent = [
-      ['ID', 'Cliente', 'Email', 'Asientos', 'Fecha'],
+      ['ID', 'Cliente', 'Teléfono', 'Asientos', 'Fecha'],
       ...reservations.map(reservation => [
         reservation.id,
         reservation.customer_name,
-        reservation.customer_email,
+        reservation.customer_phone || '',
         reservation.seats.join(', '),
         new Date(reservation.created_at).toLocaleDateString()
       ])
@@ -117,10 +117,12 @@ const ReservationList = ({ onBack }: ReservationListProps) => {
                         <User className="h-4 w-4 text-foreground" />
                         <span className="font-semibold text-foreground text-lg">{reservation.customer_name}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{reservation.customer_email}</span>
-                      </div>
+                      {reservation.customer_phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">{reservation.customer_phone}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   

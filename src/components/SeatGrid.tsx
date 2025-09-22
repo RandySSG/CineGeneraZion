@@ -61,47 +61,68 @@ const SeatGrid = ({ seats, onSeatClick, mode, selectedSeats = [] }: SeatGridProp
   };
 
   return (
-    <div className="bg-card p-8 rounded-lg border border-border">
+    <div className="bg-card rounded-lg border border-border w-full max-w-full">
       {/* Screen */}
-      <div className="mb-8 text-center">
-        <div className="w-full h-4 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full mb-2"></div>
-        <p className="text-sm text-muted-foreground font-semibold">PANTALLA</p>
+      <div className="p-2 sm:p-4">
+        <div className="mb-4 text-center">
+          <div className="w-full h-2 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full mb-2"></div>
+          <p className="text-xs text-muted-foreground font-semibold">PANTALLA</p>
+        </div>
       </div>
-      
-      {/* Seat Grid */}
-      <div className="grid grid-cols-1 gap-4 max-w-4xl mx-auto">
-        {rows.map((row) => (
-          <div key={row} className="flex items-center justify-center gap-2">
-            {/* Row Label */}
-            <div className="w-8 text-center font-bold text-foreground">{row}</div>
-            
-            {/* Seats */}
-            <div className="flex gap-2">
-              <div className="w-4"></div>
-              {renderSeatSection(1, 9, row)}
-              <div className="w-8"></div>
-              {renderSeatSection(10, 18, row)}
+
+      {/* Scrollable container with better spacing */}
+      <div className="relative w-full">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent pb-4">
+          <div className="min-w-[300px] w-fit mx-auto px-4">
+            {/* Seat Grid */}
+            <div className="grid grid-cols-1 gap-y-1">
+              {rows.map((row) => (
+                <div key={row} className="flex items-center justify-start gap-1">
+                  {/* Row Label */}
+                  <div className="w-5 text-center font-bold text-foreground text-xs">{row}</div>
+                  
+                  {/* Seats Container */}
+                  <div className="flex gap-x-1">
+                    {/* First Section (1-9) */}
+                    <div className="flex gap-x-1">
+                      {renderSeatSection(1, 9, row)}
+                    </div>
+                    {/* Aisle */}
+                    <div className="w-2"></div>
+                    {/* Second Section (10-18) */}
+                    <div className="flex gap-x-1">
+                      {renderSeatSection(10, 18, row)}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* Fade effect for scroll indication */}
+        <div className="absolute top-0 bottom-4 left-0 w-4 bg-gradient-to-r from-background to-transparent pointer-events-none"></div>
+        <div className="absolute top-0 bottom-4 right-0 w-4 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
       </div>
       
-      {/* Legend */}
-      <div className="flex justify-center gap-6 mt-8 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-seat-available rounded border-2 border-seat-available"></div>
-          <span className="text-foreground">Disponible</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-seat-occupied rounded border-2 border-seat-occupied"></div>
-          <span className="text-foreground">Ocupado</span>
-        </div>
-        {mode === "select" && (
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-seat-selected rounded border-2 border-seat-selected"></div>
-            <span className="text-foreground">Seleccionado</span>
+      {/* Legend - More compact and responsive */}
+      <div className="p-2 border-t border-border">
+        <div className="flex flex-wrap justify-center items-center gap-3 text-xs">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-seat-available rounded border border-seat-available"></div>
+            <span className="text-muted-foreground">Disponible</span>
           </div>
-        )}
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-seat-occupied rounded border border-seat-occupied"></div>
+            <span className="text-muted-foreground">Ocupado</span>
+          </div>
+          {mode === "select" && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 bg-seat-selected rounded border border-seat-selected"></div>
+              <span className="text-muted-foreground">Seleccionado</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

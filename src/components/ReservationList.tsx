@@ -109,23 +109,23 @@ const ReservationList = ({ onBack, onReservationChange }: ReservationListProps) 
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-2 mb-6 pt-2">
           <Button
             onClick={onBack}
             variant="secondary"
-            className="font-semibold"
+            className="font-semibold w-full sm:w-auto"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver al menú
           </Button>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button
               onClick={handlePrint}
               variant="secondary"
-              className="font-semibold"
+              className="font-semibold flex-1 sm:flex-initial"
             >
               <Printer className="mr-2 h-4 w-4" />
               Imprimir
@@ -133,7 +133,7 @@ const ReservationList = ({ onBack, onReservationChange }: ReservationListProps) 
             <Button
               onClick={handleDownload}
               variant="secondary"
-              className="font-semibold"
+              className="font-semibold flex-1 sm:flex-initial"
             >
               <Download className="mr-2 h-4 w-4" />
               Descargar CSV
@@ -161,28 +161,28 @@ const ReservationList = ({ onBack, onReservationChange }: ReservationListProps) 
               {groupedReservations.map((reservation) => (
                 <div
                   key={`${reservation.customerName}-${reservation.seats.join(',')}`}
-                  className="flex items-center justify-between p-4 bg-secondary rounded-lg border border-border hover:bg-secondary/80 transition-colors"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-secondary rounded-lg border border-border hover:bg-secondary/80 transition-colors gap-3 sm:gap-4"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-seat-occupied rounded-lg flex items-center justify-center font-bold text-primary-foreground">
+                  <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-seat-occupied rounded-lg flex items-center justify-center font-bold text-primary-foreground text-sm sm:text-base">
                       {reservation.seats[0]}
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1 sm:flex-initial">
                       <div className="flex items-center gap-2 mb-1">
                         <User className="h-4 w-4 text-foreground" />
-                        <span className="font-semibold text-foreground text-lg">{reservation.customerName}</span>
+                        <span className="font-semibold text-foreground text-base sm:text-lg truncate">{reservation.customerName}</span>
                       </div>
                       {reservation.customerPhone && (
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">{reservation.customerPhone}</span>
+                          <span className="text-muted-foreground text-sm truncate">{reservation.customerPhone}</span>
                         </div>
                       )}
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                    <div className="text-right flex-1 sm:flex-initial">
                       <div className="text-sm text-muted-foreground">
                         Asientos: {reservation.seats.join(', ')}
                       </div>
@@ -194,6 +194,7 @@ const ReservationList = ({ onBack, onReservationChange }: ReservationListProps) 
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDeleteReservation(reservation.ids)}
+                      className="w-full sm:w-auto"
                     >
                       Eliminar
                     </Button>

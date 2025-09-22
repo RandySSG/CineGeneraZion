@@ -30,7 +30,7 @@ const SeatButton = ({
     <button
       key={seatId}
       className={cn(
-        "w-8 h-8 rounded-lg border-2 transition-all duration-200 text-xs font-bold flex items-center justify-center",
+        "w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg border sm:border-2 transition-all duration-200 text-[10px] sm:text-xs font-bold flex items-center justify-center",
         getColor(seat),
         !canClick && "cursor-not-allowed opacity-50",
         isHovered && canClick && "transform scale-110 shadow-lg"

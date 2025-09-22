@@ -1,0 +1,119 @@
+import { useState } from "react";
+import { Seat } from "@/types/reservation";
+import { cn } from "@/lib/utils";
+import SeatButton from "./SeatButton";
+
+interface SeatGridProps {
+  seats: Seat[];
+  onSeatClick: (seat: Seat) => void;
+  mode: "select" | "delete";
+  selectedSeats?: Seat[];
+}
+
+const SeatGrid = ({ seats, onSeatClick, mode, selectedSeats = [] }: SeatGridProps) => {
+  const [hoveredSeat, setHoveredSeat] = useState<string | null>(null);
+  
+  const rows = ['A', 'B', 'C', 'D', 'E'];
+  
+  const getSeatColor = (seat: Seat) => {
+    if (selectedSeats.some(s => s.id === seat.id)) {
+      return "bg-seat-selected hover:bg-seat-selected/80 border-seat-selected";
+    }
+    if (seat.isOccupied) {
+      return "bg-seat-occupied hover:bg-seat-occupied/80 border-seat-occupied cursor-pointer";
+    }
+    return "bg-seat-available hover:bg-seat-hover border-seat-available cursor-pointer";
+  };
+
+  const canClickSeat = (seat: Seat) => {
+    if (mode === "select") {
+      return !seat.isOccupied || selectedSeats.some(s => s.id === seat.id);
+    }
+    return mode === "delete" && seat.isOccupied;
+  };
+
+  const renderSeatSection = (startNumber: number, endNumber: number, row: string) => {
+    return Array.from({ length: endNumber - startNumber + 1 }, (_, index) => {
+      const seatNumber = startNumber + index;
+      const formattedSeatNumber = seatNumber.toString().padStart(2, '0');
+      const seatId = `${row}${formattedSeatNumber}`;
+      const seat = seats.find(s => s.id === seatId) || {
+        id: seatId,
+        row,
+        number: seatNumber,
+        isOccupied: false
+      };
+      
+      return (
+        <SeatButton
+          key={seatId}
+          seat={seat}
+          seatId={seatId}
+          seatNumber={seatNumber}
+          isHovered={hoveredSeat === seatId}
+          canClick={canClickSeat(seat)}
+          onClick={() => canClickSeat(seat) && onSeatClick(seat)}
+          onHover={(isHovered) => setHoveredSeat(isHovered ? seatId : null)}
+          getColor={getSeatColor}
+        />
+      );
+    });
+  };
+
+  return (
+    <div className="bg-card rounded-lg border border-border">
+      {/* Screen */}
+      <div className="p-2 sm:p-4 md:p-8">
+        <div className="mb-4 sm:mb-6 md:mb-8 text-center">
+          <div className="w-full h-2 sm:h-3 md:h-4 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full mb-2"></div>
+          <p className="text-xs sm:text-sm text-muted-foreground font-semibold">PANTALLA</p>
+        </div>
+      </div>
+
+      {/* Scrollable container with padding to prevent clipping */}
+      <div className="overflow-x-auto pb-4">
+        <div className="w-fit mx-auto px-6 sm:px-4">
+          {/* Seat Grid with minimum width */}
+          <div className="grid grid-cols-1 gap-2 sm:gap-3 md:gap-4">
+            {rows.map((row) => (
+              <div key={row} className="flex items-center justify-center gap-1 sm:gap-2">
+                {/* Row Label */}
+                <div className="w-6 sm:w-8 text-center font-bold text-foreground text-sm sm:text-base">{row}</div>
+                
+                {/* Seats */}
+                <div className="flex gap-1 sm:gap-2">
+                  <div className="w-2 sm:w-4"></div>
+                  {renderSeatSection(1, 9, row)}
+                  <div className="w-4 sm:w-8"></div>
+                  {renderSeatSection(10, 18, row)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* Legend with padding to match screen section */}
+      <div className="p-2 sm:p-4 md:p-8 pt-4">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-seat-available rounded border-2 border-seat-available"></div>
+            <span className="text-foreground">Disponible</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-seat-occupied rounded border-2 border-seat-occupied"></div>
+            <span className="text-foreground">Ocupado</span>
+          </div>
+          {mode === "select" && (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-seat-selected rounded border-2 border-seat-selected"></div>
+              <span className="text-foreground">Seleccionado</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SeatGrid;

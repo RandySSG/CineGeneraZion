@@ -73,21 +73,21 @@ const Receipt = ({ seats, onPrint, onBackToMenu }: ReceiptProps) => {
           </div>
         </div>
 
-        <div className="flex gap-3 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button
             onClick={onPrint}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold w-full sm:w-auto"
           >
             <Printer className="mr-2 h-4 w-4" />
-            Imprimir Comprobante
+            <span className="whitespace-nowrap">Imprimir Comprobante</span>
           </Button>
           <Button
             onClick={onBackToMenu}
             variant="secondary"
-            className="font-semibold"
+            className="font-semibold w-full sm:w-auto"
           >
             <Home className="mr-2 h-4 w-4" />
-            Volver al Menú
+            <span className="whitespace-nowrap">Volver al Menú</span>
           </Button>
         </div>
       </Card>

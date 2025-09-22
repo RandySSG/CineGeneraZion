@@ -181,9 +181,9 @@ const NewReservation = ({ seats, onBack, onReservationComplete }: NewReservation
 
   return (
     <div className="min-h-screen bg-background p-4">
-      <div className="flex gap-6 max-w-7xl mx-auto">
+      <div className="flex lg:flex-row flex-col gap-4 lg:gap-6 max-w-7xl mx-auto">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-4 lg:mb-6">
             <Button
               onClick={() => setStep("select-count")}
               variant="ghost"
@@ -192,7 +192,7 @@ const NewReservation = ({ seats, onBack, onReservationComplete }: NewReservation
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">
+            <h1 className="text-xl lg:text-2xl font-bold text-foreground">
               Selecciona {seatCount} Asientos
             </h1>
           </div>

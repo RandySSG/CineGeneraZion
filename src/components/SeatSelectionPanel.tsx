@@ -23,7 +23,7 @@ const SeatSelectionPanel = ({
   const canReserve = selectedSeats.length === totalSeats && selectedSeats.every(seat => seat.person);
 
   return (
-    <Card className="w-80 p-6 bg-card border-border sticky top-4">
+    <Card className="lg:w-80 w-full p-4 sm:p-6 bg-card border-border lg:sticky lg:top-4 mt-4 lg:mt-0">
       <div className="space-y-4">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-foreground mb-2">Resumen de Reservación</h3>

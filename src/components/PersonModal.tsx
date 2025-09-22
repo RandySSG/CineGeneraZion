@@ -37,16 +37,16 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-card border-border">
-        <DialogHeader>
-          <DialogTitle className="text-foreground">
+      <DialogContent className="w-[90vw] max-w-md bg-card border-border p-4 sm:p-6">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-lg sm:text-xl text-foreground text-center">
             {mode === "add" ? "Reservar" : "Editar"} Asiento {seat.id}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-foreground">
+            <Label htmlFor="name" className="text-sm sm:text-base text-foreground">
               Nombre *
             </Label>
             <Input
@@ -55,13 +55,13 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
               onChange={(e) => setName(e.target.value)}
               placeholder=""
               autoComplete="off"
-              className="bg-input border-border text-foreground"
+              className="bg-input border-border text-foreground h-10 sm:h-12 text-sm sm:text-base"
               autoFocus
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="phone" className="text-foreground">
+            <Label htmlFor="phone" className="text-sm sm:text-base text-foreground">
               Teléfono (Opcional)
             </Label>
             <Input
@@ -71,19 +71,23 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
               onChange={(e) => setPhone(e.target.value)}
               placeholder=""
               autoComplete="off"
-              className="bg-input border-border text-foreground"
+              className="bg-input border-border text-foreground h-10 sm:h-12 text-sm sm:text-base"
             />
           </div>
         </div>
         
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={handleClose}>
+        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
+          <Button 
+            variant="secondary" 
+            onClick={handleClose}
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base"
+          >
             Cancelar
           </Button>
           <Button 
             onClick={handleSave}
             disabled={!name.trim()}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             {mode === "add" ? "Reservar" : "Actualizar"}
           </Button>

@@ -29,7 +29,7 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
 
   const handleClose = () => {
     setName("");
-    setEmail("");
+    setPhone("");
     onClose();
   };
 
@@ -69,7 +69,7 @@ const PersonModal = ({ isOpen, seat, onClose, onSave, mode }: PersonModalProps) 
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="(123) 456-7890"
+              placeholder=""
               autoComplete="tel"
               className="bg-input border-border text-foreground"
             />

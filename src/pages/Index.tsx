@@ -57,7 +57,7 @@ const Index = () => {
 
   const handleDeleteSeatReservation = async (seatId: string) => {
     try {
-      await seatService.deleteReservation([seatId]);
+      await seatService.deleteReservation([seatId], false);  // false indica que es ID de asiento
       await refetchSeats(); // Actualizamos los asientos desde la base de datos
 
       toast({

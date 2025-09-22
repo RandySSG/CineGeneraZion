@@ -99,13 +99,16 @@ export const seatService = {
     console.log('Reservaciones creadas:', data);
   },
 
-  async deleteReservation(seatIds: string[]) {
+  async deleteReservation(ids: string[], useReservationId: boolean = false) {
     const { error: deleteError } = await supabase
       .from('reservations')
       .delete()
-      .in('seat_id', seatIds);
+      .in(useReservationId ? 'id' : 'seat_id', ids);
 
-    if (deleteError) throw deleteError;
+    if (deleteError) {
+      console.error('Error al eliminar reservaciones:', deleteError);
+      throw deleteError;
+    }
   },
 
   async getAllReservations() {

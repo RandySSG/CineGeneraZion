@@ -97,7 +97,7 @@ const ReservationList = ({ onBack }: ReservationListProps) => {
 
   const handleDeleteReservation = async (ids: string[]) => {
     try {
-      await seatService.deleteReservation(ids);
+      await seatService.deleteReservation(ids, true);  // true indica que son IDs de reservación
       loadReservations(); // Recargar la lista
     } catch (error) {
       console.error('Error al eliminar la reservación:', error);
